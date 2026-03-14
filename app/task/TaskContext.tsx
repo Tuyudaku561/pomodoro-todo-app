@@ -10,6 +10,8 @@ type TaskContextValue = {
 	addTask: (task: NewTask) => void;
 	startTask: (taskId: number) => void;
 	stopTask: (taskId: number) => void;
+	editTask: (id: number, updates: Partial<NewTask>) => void;
+	deleteTask: (id: number) => void;
 };
 
 const TaskContext = createContext<TaskContextValue | undefined>(undefined);
@@ -57,11 +59,29 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 	};
 
 	/**
+   * 指定したIDのタスクを更新する
+   */
+	const editTask = (id: number, updates: Partial<NewTask>) => {
+		setTasks((prev) =>
+			prev.map((task) =>
+				task.id === id ? { ...task, ...updates } : task
+			)
+		);
+	};
+
+	/**
+   * 指定したIDのタスクを削除する
+   */
+	const deleteTask = (id: number) => {
+		setTasks((prev) => prev.filter((task) => task.id !== id));
+	};
+
+	/**
    * コンテキストに渡す値をメモ化
    * tasks配列が変更された時のみ、オブジェクトを再生成して不要な再レンダリングを抑止する
    */
 	const value = useMemo(
-		() => ({ tasks, addTask, startTask, stopTask }),
+		() => ({ tasks, addTask, startTask, stopTask, editTask, deleteTask }),
 		[tasks]
 	);
 
