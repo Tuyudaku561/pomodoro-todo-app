@@ -72,6 +72,18 @@
   background: #357abd;
 }
 
+/* AI助言欄のスタイル */
+.ai-suggestion {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f0f8ff;
+  border: 1px solid #b0e0e6;
+  border-radius: 4px;
+  color: #333;
+  font-style: italic;
+  text-align: left;
+}
+
 /* タスク一覧のスタイル */
 .task-list {
   background: white;
@@ -83,7 +95,7 @@
 .task-list h2 {
   color: #333;
   margin-bottom: 1.5rem;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
 }
 
 .task-list ul {

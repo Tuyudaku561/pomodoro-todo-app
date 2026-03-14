@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTasks } from "./TaskContext";
+import AiGene from "./ai_gene";
 
 /**
  * タスクのタイトルとポモドーロ数を入力して、タスクを追加するためのコンポーネント
@@ -49,6 +50,7 @@ export default function InputSpace() {
 				</select>
 				<button type="submit">追加</button>
 			</form>
+			<AiGene taskInput={input} />
 		</div>
 	);
 }
