@@ -1,19 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import type { Task } from "./types";
-
-/**
- * タスク追加のための入力スペースコンポーネント
- */
-interface InputSpaceProps {
-	onAddTask: (task: Omit<Task, 'id'>) => void;
-}
+import { useTasks } from "./TaskContext";
 
 /**
  * タスクのタイトルとポモドーロ数を入力して、タスクを追加するためのコンポーネント
  */
-export default function InputSpace({ onAddTask }: InputSpaceProps) {
+export default function InputSpace() {
+	const { addTask } = useTasks();
 	const [input, setInput] = useState("");
 	const [pomodoroCount, setPomodoroCount] = useState(1);
 
@@ -22,8 +16,9 @@ export default function InputSpace({ onAddTask }: InputSpaceProps) {
 	 */
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+		// 入力値が空文字（またはスペースのみ）でないかチェック
 		if (input.trim()) {
-			onAddTask({
+			addTask({
 				title: input.trim(),
 				completed: false,
 				pomodoroCount,
