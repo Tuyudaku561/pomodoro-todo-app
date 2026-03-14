@@ -29,7 +29,7 @@ export default function InputSpace() {
 	};
 
 	return (
-		<div>
+		<div className="input-space">
 			<form onSubmit={handleSubmit}>
 				<input
 					type="text"

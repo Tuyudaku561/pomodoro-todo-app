@@ -1,0 +1,202 @@
+/* タスクページ全体のスタイル */
+.task-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.task-page h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+}
+
+/* 入力スペースのスタイル */
+.input-space {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.input-space form {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: center;
+}
+
+.input-space input[type="text"] {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.75rem;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.input-space input[type="text"]:focus {
+  outline: none;
+  border-color: #4a90e2;
+}
+
+.input-space select {
+  padding: 0.75rem;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  background: white;
+  cursor: pointer;
+}
+
+.input-space button {
+  padding: 0.75rem 1.5rem;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.input-space button:hover {
+  background: #357abd;
+}
+
+/* タスク一覧のスタイル */
+.task-list {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.task-list h2 {
+  color: #333;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.task-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.task-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  background: #f9f9f9;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+  transition: background-color 0.3s;
+}
+
+.task-list li:hover {
+  background: #f0f0f0;
+}
+
+.task-list li.editing {
+  background: #fff3cd;
+  border-color: #ffc107;
+}
+
+/* 編集モードの入力欄 */
+.task-list li input[type="text"] {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-right: 0.5rem;
+}
+
+.task-list li select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-right: 0.5rem;
+}
+
+/* ボタンのスタイル */
+.task-list button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-left: 0.5rem;
+  transition: background-color 0.3s;
+}
+
+.task-list button:hover {
+  opacity: 0.9;
+}
+
+.task-list button:first-of-type {
+  background: #28a745;
+  color: white;
+}
+
+.task-list button:nth-of-type(2) {
+  background: #4a90e2;
+  color: white;
+}
+
+.task-list button:nth-of-type(3) {
+  background: #ffc107;
+  color: black;
+}
+
+.task-list button:nth-of-type(4) {
+  background: #dc3545;
+  color: white;
+}
+
+/* 実行中のタスクのスタイル */
+.task-list .running {
+  background: #d4edda;
+  border-color: #c3e6cb;
+}
+
+.task-list .running span {
+  color: #155724;
+  font-weight: bold;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 600px) {
+  .task-page {
+    padding: 1rem;
+  }
+
+  .input-space form {
+    align-items: stretch;
+  }
+
+  .input-space input[type="text"],
+  .input-space select,
+  .input-space button {
+    width: 100%;
+  }
+
+  .task-list li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .task-list button {
+    align-self: flex-end;
+  }
+}

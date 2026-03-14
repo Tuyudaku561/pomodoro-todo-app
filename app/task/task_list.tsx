@@ -54,11 +54,11 @@ export default function TaskList({ tasks }: TaskListProps) {
 	};
 
 	return (
-		<div>
+		<div className="task-list">
 			<h2>タスク一覧</h2>
 			<ul>
 				{tasks.map((task) => (
-					<li key={task.id}>
+					<li key={task.id} className={editingTaskId === task.id ? "editing" : task.isRunning ? "running" : ""}>
 						{editingTaskId === task.id ? (
 							<>
 								<input
@@ -81,16 +81,20 @@ export default function TaskList({ tasks }: TaskListProps) {
 							</>
 						) : (
 							<>
-								{task.title} - ポモドーロ数: {task.pomodoroCount}
-								{task.isRunning ? (
-									<span> (実行中)</span>
-								) : (
-									<button onClick={() => handleStart(task.id)}>
-										start
-									</button>
-								)}
-								<button onClick={() => handleEdit(task)}>編集</button>
-								<button onClick={() => handleDelete(task.id)}>削除</button>
+								{/* 1. テキストを span で囲む */}
+								<span style={{ flex: 1 }}>
+									{task.title} - ポモドーロ数: {task.pomodoroCount}
+									{task.isRunning && <span> (実行中)</span>}
+								</span>
+
+								{/* 2. ボタン全体を div で囲む */}
+								<div className="button-group">
+									{!task.isRunning && (
+										<button onClick={() => handleStart(task.id)}>start</button>
+									)}
+									<button onClick={() => handleEdit(task)}>編集</button>
+									<button onClick={() => handleDelete(task.id)}>削除</button>
+								</div>
 							</>
 						)}
 					</li>

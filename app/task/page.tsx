@@ -1,5 +1,6 @@
 "use client";
 
+import "./sample.css";
 import InputSpace from "./input_space";
 import TaskList from "./task_list";
 import { useTasks } from "./TaskContext";
@@ -11,7 +12,8 @@ export default function TaskPage() {
 	const { tasks } = useTasks();
 
 	return (
-		<div>
+		<div className="task-page">
+			<h1>ポモドーロ・タスク管理</h1>
 			<InputSpace />
 			<TaskList tasks={tasks} />
 		</div>
