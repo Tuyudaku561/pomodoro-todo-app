@@ -17,14 +17,16 @@ interface TaskListProps {
  */
 export default function TaskList({ tasks }: TaskListProps) {
 	const router = useRouter();
-	const { startTask, editTask, deleteTask } = useTasks();
+	const { startTask, editTask, deleteTask, stopTask } = useTasks();
 	const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
 	const [editTitle, setEditTitle] = useState("");
 	const [editPomodoroCount, setEditPomodoroCount] = useState(1);
 
+	const hasRunningTask = tasks.some(task => task.isRunning);
+
 	const handleStart = (taskId: number) => {
 		startTask(taskId);
-		router.push(`/timer?taskId=${taskId}`);
+		//router.push(`/timer?taskId=${taskId}`);
 	};
 
 	const handleEdit = (task: Task) => {
@@ -89,11 +91,20 @@ export default function TaskList({ tasks }: TaskListProps) {
 
 								{/* 2. ボタン全体を div で囲む */}
 								<div className="button-group">
+									{!hasRunningTask && !task.isRunning &&
+										<button onClick={() => handleStart(task.id)}>start</button>}
+
 									{!task.isRunning && (
-										<button onClick={() => handleStart(task.id)}>start</button>
+										<>
+											<button onClick={() => handleEdit(task)}>編集</button>
+											<button onClick={() => handleDelete(task.id)}>削除</button>
+										</>
 									)}
-									<button onClick={() => handleEdit(task)}>編集</button>
-									<button onClick={() => handleDelete(task.id)}>削除</button>
+
+									{task.isRunning && (
+										<button onClick={() => stopTask(task.id)}>強制終了</button>
+									)}
+
 								</div>
 							</>
 						)}
