@@ -35,6 +35,8 @@ type TaskContextValue = {
 	handleRatingSelect: (rating: 1 | 2 | 3) => void;
 	showEvaluation: boolean;
 	setShowEvaluation: (show: boolean) => void;
+	achievements: Achievement[];
+	clearAchievements: () => void;
 };
 
 const TaskContext = createContext<TaskContextValue | undefined>(undefined);
@@ -46,7 +48,9 @@ const TIMER_STORAGE_KEY = "pomodoro-timer";
  * タスク管理とタイマーの状態を提供するプロバイダーコンポーネント
  */
 export function TaskProvider({ children }: { children: React.ReactNode }) {
+	const DEBUG = true; // デバッグ用: trueでachievementsをコンソール出力、falseで無効化
 	const [tasks, setTasks] = useState<Task[]>([]);
+	const [achievements, setAchievements] = useState<Achievement[]>([]);
 
 	// タイマーの状態
 	const [mode, setMode] = useState<TimerMode>("work");
@@ -86,6 +90,16 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 					});
 				} catch (error) {
 					console.error("Failed to parse timer:", error);
+				}
+			}
+
+			const storedAchievements = localStorage.getItem("achievements");
+			if (storedAchievements) {
+				try {
+					const parsedAchievements = JSON.parse(storedAchievements);
+					queueMicrotask(() => setAchievements(parsedAchievements));
+				} catch (error) {
+					console.error("Failed to parse achievements from localStorage:", error);
 				}
 			}
 		}
@@ -230,21 +244,20 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 			setTasks(currentTasks => {
 				const task = currentTasks.find(t => t.id === currentActiveId);
 				if (task) {
-					setPomodoroCount(currentPomodoroCount => {
-						const achievement: Achievement = {
-							taskName: task.title,
-							plannedPomodoros: task.pomodoroCount,
-							actualPomodoros: currentPomodoroCount,
-							rating,
-						};
+					const achievement: Achievement = {
+						taskName: task.title,
+						plannedPomodoros: task.pomodoroCount,
+						rating,
+					};
 
-						const storedAchievements = localStorage.getItem("achievements");
-						const achievements: Achievement[] = storedAchievements ? JSON.parse(storedAchievements) : [];
-						achievements.push(achievement);
-						localStorage.setItem("achievements", JSON.stringify(achievements));
+					const storedAchievements = localStorage.getItem("achievements");
+					const achievements: Achievement[] = storedAchievements ? JSON.parse(storedAchievements) : [];
+					achievements.push(achievement);
+					localStorage.setItem("achievements", JSON.stringify(achievements));
+					setAchievements(achievements);
+					if (DEBUG) console.log("Updated achievements:", achievements);
 
-						return 0; // 実績保存後にpomodoroCountをリセット
-					});
+					setPomodoroCount(0); // 実績保存後にpomodoroCountをリセット
 				}
 				return currentTasks.filter(t => t.id !== currentActiveId); // タスクを完了扱いで一覧から削除
 			});
@@ -282,6 +295,14 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 	}, []);
 
 	/**
+	 * achievementsを初期化する
+	 */
+	const clearAchievements = useCallback(() => {
+		localStorage.removeItem("achievements");
+		setAchievements([]);
+	}, []);
+
+	/**
 	 * コンテキストに渡す値をメモ化
 	 */
 	const value = useMemo(
@@ -290,12 +311,12 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 			mode, setMode, timeLeft, setTimeLeft, isTimerRunning, setIsTimerRunning,
 			pomodoroCount, setPomodoroCount, targetPomodoros, setTargetPomodoros,
 			totalFocusSeconds, setTotalFocusSeconds, activeTaskId, resetTimer,
-			handleRatingSelect, showEvaluation, setShowEvaluation
+			handleRatingSelect, showEvaluation, setShowEvaluation, achievements, clearAchievements
 		}),
 		[
 			tasks, addTask, startTask, stopTask, editTask, deleteTask,
 			mode, timeLeft, isTimerRunning, pomodoroCount, targetPomodoros,
-			totalFocusSeconds, activeTaskId, resetTimer, handleRatingSelect, showEvaluation
+			totalFocusSeconds, activeTaskId, resetTimer, handleRatingSelect, showEvaluation, achievements, clearAchievements
 		]
 	);
 

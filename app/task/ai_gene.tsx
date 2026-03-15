@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { getPomodoroSuggestion } from "./actions";
+import type { Achievement } from "./types";
 
 /**
  * AIによるタスク助言を生成するコンポーネント
@@ -26,7 +27,9 @@ export default function AiGene({ taskInput, onSuggest }: AiGeneProps) {
 
 		setLoading(true);
 		try {
-			const res = await getPomodoroSuggestion(taskInput);
+			const storedAchievements = localStorage.getItem("achievements");
+			const achievements: Achievement[] = storedAchievements ? JSON.parse(storedAchievements) : [];
+			const res = await getPomodoroSuggestion(taskInput, achievements);
 			if (res) {
 				setSuggestion(res);
 			}
