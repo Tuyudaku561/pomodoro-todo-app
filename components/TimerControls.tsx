@@ -15,11 +15,11 @@ export default function TimerControls({
   onReset,
 }: TimerControlsProps) {
   return (
-    <div className="mt-10 flex justify-center gap-4">
+    <div className="flex justify-center gap-4">
       {/* Start ボタン */}
       <button
         onClick={onStart}
-        className="rounded-[4px] bg-[#4a90e2] px-6 py-3 font-semibold text-white shadow-sm transition-opacity duration-150 hover:opacity-90"
+        className="w-26 rounded-[4px] bg-[#4a90e2] py-2.5 font-bold text-white shadow-sm transition-opacity duration-150 hover:opacity-90"
       >
         Start
       </button>
@@ -27,7 +27,7 @@ export default function TimerControls({
       {/* Pause ボタン */}
       <button
         onClick={onPause}
-        className="rounded-[4px] bg-[#ffc107] px-6 py-3 font-semibold text-black shadow-sm transition-opacity duration-150 hover:opacity-90"
+        className="w-26 rounded-[4px] bg-[#64748b] py-2.5 font-bold text-white shadow-sm transition-opacity duration-150 hover:opacity-90"
       >
         Pause
       </button>
@@ -35,7 +35,7 @@ export default function TimerControls({
       {/* Reset ボタン */}
       <button
         onClick={onReset}
-        className="rounded-[4px] bg-[#dc3545] px-6 py-3 font-semibold text-white shadow-sm transition-opacity duration-150 hover:opacity-90"
+        className="w-26 rounded-[4px] bg-[#94a3b8] py-2.5 font-bold text-white shadow-sm transition-opacity duration-150 hover:opacity-90"
       >
         Reset
       </button>
