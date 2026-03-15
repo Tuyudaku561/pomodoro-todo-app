@@ -4,11 +4,15 @@ import TimerDisplay from "../../components/TimerDisplay";
 import ModeSwitcher from "../../components/ModeSwitcher";
 import TimerControls from "../../components/TimerControls";
 import { useTasks } from "../task/TaskContext";
+import {useRouter} from "next/navigation";
 
-const WORK_TIME = 25 * 60;
-const BREAK_TIME = 5 * 60;
+const WORK_TIME = 10;
+const BREAK_TIME = 10;
 
 export default function TimerPage() {
+  const router = useRouter();
+  const {tasks, activeTaskId} = useTasks();
+  const activeTask = tasks.find((t) => t.id=== activeTaskId);
 	const {
 		mode, setMode,
 		timeLeft, setTimeLeft,
@@ -18,7 +22,7 @@ export default function TimerPage() {
 		totalFocusSeconds,
 		resetTimer,
 		handleRatingSelect,
-		showEvaluation
+		showEvaluation,
 	} = useTasks();
 
   // 関数: 秒を mm:ss に変換する
@@ -42,7 +46,7 @@ export default function TimerPage() {
       <div className="mx-auto max-w-2xl rounded-2xl bg-white p-8 shadow-md">
         {/* タイトル */}
         <h1 className="mb-8 text-center text-3xl font-bold text-gray-800">
-          Pomodoro Timer
+          {activeTask?.title}
         </h1>
 
         {/* Work / Break 切り替え */}
@@ -106,19 +110,28 @@ export default function TimerPage() {
             <h2 className="mb-4 text-xl font-semibold text-gray-800">タスクの達成度を評価してください</h2>
             <div className="flex justify-center gap-4">
               <button
-                onClick={() => handleRatingSelect(1)}
+                onClick={() => {
+                  handleRatingSelect(1);
+                  router.push("/task");
+                }}
                 className="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600 transition-colors"
               >
                 1: 期待を下回る
               </button>
               <button
-                onClick={() => handleRatingSelect(2)}
+                onClick={() => {
+                  handleRatingSelect(2);
+                  router.push("/task");
+                }}
                 className="rounded-lg bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600 transition-colors"
               >
                 2: 期待通り
               </button>
               <button
-                onClick={() => handleRatingSelect(3)}
+                onClick={() => {
+                  handleRatingSelect(3);
+                  router.push("/task");
+                }}
                 className="rounded-lg bg-green-500 px-4 py-2 text-white hover:bg-green-600 transition-colors"
               >
                 3: 期待を上回る
