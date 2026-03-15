@@ -18,12 +18,10 @@ export type Task = {
  * 達成度データ（JSON）の型
  * - taskName: 過去のタスク名
  * - plannedPomodoros: 計画されたポモドーロ数
- * - actualPomodoros: 実際に費やしたポモドーロ数
  * - rating: 3段階評価 (1: 期待を下回る, 2: 期待通り, 3: 期待を上回る)
  */
 export type Achievement = {
 	taskName: string;
 	plannedPomodoros: number;
-	actualPomodoros: number;
 	rating: 1 | 2 | 3;
 }

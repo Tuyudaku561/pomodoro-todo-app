@@ -3,12 +3,12 @@
 import { google } from "@ai-sdk/google";
 import { generateObject } from "ai";
 import { z } from "zod";
-import { SAMPLE_ACHIEVEMENTS } from "./sample_data";
+import { Achievement } from "./types";
 
 /**
  * タスク名から最適なポモドーロ数をAIに相談するServer Action
  */
-export async function getPomodoroSuggestion(taskName: string) {
+export async function getPomodoroSuggestion(taskName: string, achievements: Achievement[]) {
 	if (!taskName || taskName.trim().length < 2) {
 		return null;
 	}
@@ -31,12 +31,12 @@ export async function getPomodoroSuggestion(taskName: string) {
 以下の過去の達成度データ（JSON）を元に、このユーザーにとって最適なポモドーロ数（1ポモドーロ=25分）を1以上10以下の整数で提案してください。
 
 過去のデータ:
-${JSON.stringify(SAMPLE_ACHIEVEMENTS, null, 2)}
+${JSON.stringify(achievements, null, 2)}
 
 評価（rating）の意味:
-1: 期待を下回った (計画より時間がかかりすぎた)
-2: 期待通り (計画通り)
-3: 期待を上回った (計画より早く終わった、または非常に集中できた)
+1: 未達成 (計画より時間がかかった)
+2: 概ね達成 (概ね計画通り)
+3: 完全達成 (計画より早く終わった、または非常に集中できた)
 
 ユーザーの傾向を分析し、「${taskName}」に似た過去のタスクや、全体的な見積もりの甘さ・厳しさを考慮して提案してください。
 reasonは必ず100文字以内の日本語で回答してください。
