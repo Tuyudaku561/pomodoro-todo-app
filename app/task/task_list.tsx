@@ -101,7 +101,7 @@ export default function TaskList({ tasks }: TaskListProps) {
 									) : (
 										// 停止中の表示
 										<>
-											{!hasRunningTask && <button onClick={() => handleStart(task.id)}>start</button>}
+											{!hasRunningTask && <button onClick={() => handleStart(task.id)}>開始</button>}
 											<button onClick={() => handleEdit(task)}>編集</button>
 											<button onClick={() => handleDelete(task.id)}>削除</button>
 										</>

@@ -28,7 +28,7 @@ export default function TimerDisplay({
     <div className="flex flex-col items-center w-full">
       {showClock && (
         <>
-          <p className="mb-4 text-center text-lg font-medium text-gray-700">
+          <p className="mb-4 text-center text-2xl font-bold text-gray-800">
             {mode === "work" ? "Work Time" : "Break Time"}
           </p>
 
@@ -44,26 +44,26 @@ export default function TimerDisplay({
             </div>
           </div>
 
-          <p className="mt-6 text-center text-gray-600">
+          <p className="mt-6 text-center text-xl font-semibold text-gray-700">
             {timeLeft <= 0 ? "Time's up!" : isRunning ? "Running..." : "Paused"}
           </p>
         </>
       )}
 
       {showStats && (
-        <div className={variant === "stats" ? "w-full text-left space-y-2" : "mt-4 text-center"}>
-          <p className="text-gray-700 font-medium">
-            Pomodoros completed: <span className="text-gray-900">{pomodoroCount} / {targetPomodoros}</span>
+        <div className={variant === "stats" ? "w-full text-left space-y-3" : "mt-6 text-center"}>
+          <p className="text-lg text-gray-700 font-medium">
+            Pomodoros completed: <span className="text-xl text-gray-900 font-bold">{pomodoroCount} / {targetPomodoros}</span>
           </p>
 
           {pomodoroCount >= targetPomodoros && (
-            <p className="text-green-600 font-semibold">
+            <p className="text-xl text-green-600 font-bold">
               Goal reached! Timer is stopped.
             </p>
           )}
 
-          <p className="text-gray-700 font-medium">
-            Total focus time today: <span className="text-gray-900">{formatFocusMinutes(totalFocusSeconds)} min</span>
+          <p className="text-lg text-gray-700 font-medium">
+            Total focus time today: <span className="text-xl text-gray-900 font-bold">{formatFocusMinutes(totalFocusSeconds)} min</span>
           </p>
         </div>
       )}

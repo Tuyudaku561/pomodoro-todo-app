@@ -58,14 +58,14 @@ export default function TimerPage() {
           </div>
 
           {/* 右側: 情報とコントロール */}
-          <div className="w-full md:w-1/2 flex flex-col space-y-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 border-b pb-4">
+          <div className="w-full md:w-1/2 flex flex-col space-y-4">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 border-b pb-2">
               {activeTask?.title || "タイマー"}
             </h1>
 
-            {/* 達成度評価 */}
+            {/* 達成度評価 (一番下に配置) */}
             {showEvaluation && (
-              <div className="mt-8 rounded-[8px] bg-[#f0faff] border-[1px] border-dashed border-[#4a90e2] px-1 py-6 text-center animate-fadeIn">
+              <div className="mt-4 rounded-[8px] bg-[#f0faff] border-[1px] border-dashed border-[#4a90e2] px-1 py-6 text-center animate-fadeIn">
                 <h2 className="mb-4 text-[1.1rem] font-semibold text-[#333]">タスクの達成度を評価してください</h2>
                 <div className="flex flex-wrap justify-center gap-4">
                   <button
@@ -73,7 +73,7 @@ export default function TimerPage() {
                       handleRatingSelect(1);
                       router.push("/task");
                     }}
-                    className="w-24 rounded-[4px] bg-[#dc3545] py-2.5 text-white hover:opacity-90 transition-opacity font-bold text-sm"
+                    className="w-26 rounded-[4px] bg-[#dc3545] py-2.5 text-white hover:opacity-90 transition-opacity font-bold text-sm"
                   >
                     未達成
                   </button>
