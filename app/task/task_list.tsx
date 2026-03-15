@@ -16,7 +16,7 @@ interface TaskListProps {
  * タスクのタイトルとポモドーロ数を表示するためのコンポーネント
  */
 export default function TaskList({ tasks }: TaskListProps) {
-	const { startTask, editTask, deleteTask, stopTask } = useTasks();
+	const { startTask, editTask, deleteTask, stopTask, setShowEvaluation } = useTasks();
 	const router = useRouter();
 	const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
 	const [editTitle, setEditTitle] = useState("");
@@ -93,7 +93,11 @@ export default function TaskList({ tasks }: TaskListProps) {
 								<div className="button-group">
 									{task.isRunning ? (
 										// 実行中の表示
-										<button onClick={() => stopTask(task.id)}>強制終了</button>
+										<button onClick={() => {
+											stopTask(task.id);
+											setShowEvaluation(true);
+											router.push("/timer");
+										}}>強制終了</button>
 									) : (
 										// 停止中の表示
 										<>
