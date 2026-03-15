@@ -178,6 +178,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 				setActiveTaskId(taskId);
 				setTargetPomodoros(task.pomodoroCount);
 				setIsTimerRunning(true);
+				setShowEvaluation(false);
 				return prev.map((t) => ({
 					...t,
 					isRunning: t.id === taskId,
@@ -249,9 +250,10 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 			});
 
 			setShowEvaluation(false);
+			resetTimer();
 			return null; // activeTaskIdをリセット
 		});
-	}, []);
+	}, [resetTimer]);
 
 	/**
 	 * 指定したIDのタスクを更新する
