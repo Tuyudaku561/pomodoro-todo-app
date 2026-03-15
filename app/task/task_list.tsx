@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import type { Task } from "./types";
 import { useTasks } from "./TaskContext";
 
@@ -16,7 +15,6 @@ interface TaskListProps {
  * タスクのタイトルとポモドーロ数を表示するためのコンポーネント
  */
 export default function TaskList({ tasks }: TaskListProps) {
-	const router = useRouter();
 	const { startTask, editTask, deleteTask, stopTask } = useTasks();
 	const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
 	const [editTitle, setEditTitle] = useState("");
@@ -91,18 +89,16 @@ export default function TaskList({ tasks }: TaskListProps) {
 
 								{/* 2. ボタン全体を div で囲む */}
 								<div className="button-group">
-									{!hasRunningTask && !task.isRunning &&
-										<button onClick={() => handleStart(task.id)}>start</button>}
-
-									{!task.isRunning && (
+									{task.isRunning ? (
+										// 実行中の表示
+										<button onClick={() => stopTask(task.id)}>強制終了</button>
+									) : (
+										// 停止中の表示
 										<>
+											{!hasRunningTask && <button onClick={() => handleStart(task.id)}>start</button>}
 											<button onClick={() => handleEdit(task)}>編集</button>
 											<button onClick={() => handleDelete(task.id)}>削除</button>
 										</>
-									)}
-
-									{task.isRunning && (
-										<button onClick={() => stopTask(task.id)}>強制終了</button>
 									)}
 
 								</div>

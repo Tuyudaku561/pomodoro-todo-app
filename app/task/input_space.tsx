@@ -50,7 +50,14 @@ export default function InputSpace() {
 				</select>
 				<button type="submit">追加</button>
 			</form>
-			<AiGene taskInput={input} />
+			{
+				/*
+				 * <AiGene 
+				taskInput={input} 
+				onSuggest={(count) => setPomodoroCount(count)} 
+			/>
+				 */
+			}
 		</div>
 	);
 }

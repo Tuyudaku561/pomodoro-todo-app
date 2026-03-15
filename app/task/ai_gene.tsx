@@ -1,33 +1,63 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getPomodoroSuggestion } from "./actions";
 
 /**
  * AIによるタスク助言を生成するコンポーネント
  */
 interface AiGeneProps {
-  taskInput: string;
+	taskInput: string;
+	onSuggest: (count: number) => void;
 }
 
-export default function AiGene({ taskInput }: AiGeneProps) {
-  const [suggestion, setSuggestion] = useState("AIによる助言");
+export default function AiGene({ taskInput, onSuggest }: AiGeneProps) {
+	const [suggestion, setSuggestion] = useState<{
+		suggestedPomodoros: number;
+		reason: string;
+	} | null>(null);
+	const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    // 将来的にAI SDKをここで呼び出して助言を生成
-    // 例: const response = await aiSDK.generateSuggestion(taskInput);
-    // setSuggestion(response.suggestion);
+	// タスク入力が変更されたらAIに相談する
+	// ※頻繁なリクエストを防ぐためにデバウンス処理を入れる
+	useEffect(() => {
+		const timer = setTimeout(async () => {
+			if (taskInput.trim().length < 2) {
+				setSuggestion(null);
+				return;
+			}
+			setLoading(true);
+			const res = await getPomodoroSuggestion(taskInput);
+			if (res) {
+				setSuggestion(res);
+			}
+			setLoading(false);
+		}, 1000); // 1秒のデバウンス
 
-    // 今はプレースホルダー
-    if (taskInput.trim()) {
-      setSuggestion(`「${taskInput}」のタスクについて、AIが助言を生成中...`);
-    } else {
-      setSuggestion("AIによる助言");
-    }
-  }, [taskInput]);
+		return () => clearTimeout(timer);
+	}, [taskInput]);
 
-  return (
-    <div className="ai-suggestion">
-      {suggestion}
-    </div>
-  );
+	if (loading) {
+		return <div className="ai-suggestion loading">AIが分析中...</div>;
+	}
+
+	if (!suggestion) {
+		return null;
+	}
+
+	return (
+		<div className="ai-suggestion-box">
+			<div className="suggestion-header">
+				✨ AIによる提案: <strong>{suggestion.suggestedPomodoros}ポモドーロ</strong>
+			</div>
+			<p className="suggestion-reason">{suggestion.reason}</p>
+			<button 
+				type="button" 
+				className="apply-button"
+				onClick={() => onSuggest(suggestion.suggestedPomodoros)}
+			>
+				この提案を適用する
+			</button>
+		</div>
+	);
 }
