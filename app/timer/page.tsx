@@ -1,17 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import TimerDisplay from "../../components/TimerDisplay";
 import ModeSwitcher from "../../components/ModeSwitcher";
 import TimerControls from "../../components/TimerControls";
+import { useTasks } from "../task/TaskContext";
+
+const WORK_TIME = 25 * 60;
+const BREAK_TIME = 5 * 60;
 
 export default function TimerPage() {
-  const [mode, setMode] = useState<"work" | "break">("work");// タイマーのモード（work か break）
-  const [timeLeft, setTimeLeft] = useState(10);// 残り時間（秒）
-  const [isRunning, setIsRunning] = useState(false);// タイマーが動いているかどうか
-  const [pomodoroCount, setPomodoroCount] = useState(0);// 完了したポモドーロ回数
-  const [targetPomodoros, setTargetPomodoros] = useState(4);// 目標ポモドーロ数
-	const [totalFocusSeconds, setTotalFocusSeconds] = useState(0);// 累計集中時間（秒）
+	const {
+		mode, setMode,
+		timeLeft, setTimeLeft,
+		isTimerRunning, setIsTimerRunning,
+		pomodoroCount,
+		targetPomodoros, setTargetPomodoros,
+		totalFocusSeconds,
+		resetTimer,
+		handleRatingSelect,
+		showEvaluation
+	} = useTasks();
 
   // 関数: 秒を mm:ss に変換する
   const formatTime = (seconds: number) => {
@@ -23,52 +31,11 @@ export default function TimerPage() {
 
     return `${mm}:${ss}`;
   };
+
 	// 関数: 累計集中時間を分に変換する
 	const formatFocusMinutes = (seconds: number) => {
 		return Math.floor(seconds / 60);
 	};
-
-  // React の機能:
-  // isRunning, timeLeft, mode の変化に応じてタイマーを動かす
-  useEffect(() => {
-    // タイマーが止まっているなら何もしない
-    if (!isRunning) return;
-
-    // 0秒以下になったらモード切り替え
-    if (timeLeft <= 0) {
-      if (mode === "work") {
-        const nextCount = pomodoroCount + 1;
-        setPomodoroCount(nextCount);
-
-        if (nextCount >= targetPomodoros) {
-          // 目標到達で一旦停止
-          setIsRunning(false);
-          return;
-        }
-
-        // Break に切り替え
-        setMode("break");
-        setTimeLeft(10);
-      } else {
-        // Work に戻す
-        setMode("work");
-        setTimeLeft(10);
-      }
-      return;
-    }
-
-    // 1秒ごとに timeLeft を 1 減らす
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
-			// Work モードのときだけ集中時間を増やす
-			if (mode === "work"){
-				setTotalFocusSeconds((prev) => prev + 1);
-			}
-    }, 1000);
-
-    // 前の interval を消す
-    return () => clearInterval(interval);
-  }, [isRunning, timeLeft, mode, pomodoroCount, targetPomodoros]);
 
   return (
     <main className="min-h-screen bg-gray-100 px-6 py-10">
@@ -82,13 +49,13 @@ export default function TimerPage() {
         <ModeSwitcher
           onWorkClick={() => {
             setMode("work");
-            setTimeLeft(25 * 60);
-            setIsRunning(false);
+            setTimeLeft(WORK_TIME);
+            setIsTimerRunning(false);
           }}
           onBreakClick={() => {
             setMode("break");
-            setTimeLeft(5 * 60);
-            setIsRunning(false);
+            setTimeLeft(BREAK_TIME);
+            setIsTimerRunning(false);
           }}
         />
 
@@ -113,7 +80,7 @@ export default function TimerPage() {
         <TimerDisplay
           mode={mode}
           timeLeft={timeLeft}
-          isRunning={isRunning}
+          isRunning={isTimerRunning}
           pomodoroCount={pomodoroCount}
           targetPomodoros={targetPomodoros}
           totalFocusSeconds={totalFocusSeconds}
@@ -127,20 +94,38 @@ export default function TimerPage() {
             if (pomodoroCount >= targetPomodoros) {
               return;
             }
-            setIsRunning(true);
+            setIsTimerRunning(true);
           }}
-          onPause={() => setIsRunning(false)}
-          onReset={() => {
-            // 今のモードに応じた時間に戻す
-            if (mode === "work") {
-              setTimeLeft(25 * 60);
-            } else {
-              setTimeLeft(5 * 60);
-            }
-
-            setIsRunning(false);
-          }}
+          onPause={() => setIsTimerRunning(false)}
+          onReset={resetTimer}
         />
+        
+        {/* 達成度評価 */}
+        {showEvaluation && (
+          <div className="mt-8 rounded-lg bg-blue-50 p-6 text-center">
+            <h2 className="mb-4 text-xl font-semibold text-gray-800">タスクの達成度を評価してください</h2>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => handleRatingSelect(1)}
+                className="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600 transition-colors"
+              >
+                1: 期待を下回る
+              </button>
+              <button
+                onClick={() => handleRatingSelect(2)}
+                className="rounded-lg bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600 transition-colors"
+              >
+                2: 期待通り
+              </button>
+              <button
+                onClick={() => handleRatingSelect(3)}
+                className="rounded-lg bg-green-500 px-4 py-2 text-white hover:bg-green-600 transition-colors"
+              >
+                3: 期待を上回る
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
