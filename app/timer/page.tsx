@@ -4,11 +4,13 @@ import TimerDisplay from "../../components/TimerDisplay";
 import ModeSwitcher from "../../components/ModeSwitcher";
 import TimerControls from "../../components/TimerControls";
 import { useTasks } from "../task/TaskContext";
+import {useRouter} from "next/navigation";
 
-const WORK_TIME = 25 * 60;
-const BREAK_TIME = 5 * 60;
+const WORK_TIME = 10;
+const BREAK_TIME = 10;
 
 export default function TimerPage() {
+  const router = useRouter();
 	const {
 		mode, setMode,
 		timeLeft, setTimeLeft,
@@ -106,19 +108,28 @@ export default function TimerPage() {
             <h2 className="mb-4 text-xl font-semibold text-gray-800">タスクの達成度を評価してください</h2>
             <div className="flex justify-center gap-4">
               <button
-                onClick={() => handleRatingSelect(1)}
+                onClick={() => {
+                  handleRatingSelect(1);
+                  router.push("/task");
+                }}
                 className="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600 transition-colors"
               >
                 1: 期待を下回る
               </button>
               <button
-                onClick={() => handleRatingSelect(2)}
+                onClick={() => {
+                  handleRatingSelect(2);
+                  router.push("/task");
+                }}
                 className="rounded-lg bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600 transition-colors"
               >
                 2: 期待通り
               </button>
               <button
-                onClick={() => handleRatingSelect(3)}
+                onClick={() => {
+                  handleRatingSelect(3);
+                  router.push("/task");
+                }}
                 className="rounded-lg bg-green-500 px-4 py-2 text-white hover:bg-green-600 transition-colors"
               >
                 3: 期待を上回る
