@@ -21,7 +21,6 @@ export default function InputSpace() {
 		if (input.trim()) {
 			addTask({
 				title: input.trim(),
-				completed: false,
 				pomodoroCount,
 			});
 			setInput("");
@@ -51,8 +50,9 @@ export default function InputSpace() {
 				<button type="submit">追加</button>
 			</form>
 			<AiGene
-				taskInput={input} 
+				taskInput={input}
 				onSuggest={(count) => setPomodoroCount(count)}
+				currentCount={pomodoroCount}
 			/>
 		</div>
 	);

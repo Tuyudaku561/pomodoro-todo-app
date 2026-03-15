@@ -10,9 +10,10 @@ import type { Achievement } from "./types";
 interface AiGeneProps {
 	taskInput: string;
 	onSuggest: (count: number) => void;
+	currentCount: number;
 }
 
-export default function AiGene({ taskInput, onSuggest }: AiGeneProps) {
+export default function AiGene({ taskInput, onSuggest, currentCount }: AiGeneProps) {
 	const [suggestion, setSuggestion] = useState<{
 		suggestedPomodoros: number;
 		reason: string;
@@ -29,7 +30,7 @@ export default function AiGene({ taskInput, onSuggest }: AiGeneProps) {
 		try {
 			const storedAchievements = localStorage.getItem("achievements");
 			const achievements: Achievement[] = storedAchievements ? JSON.parse(storedAchievements) : [];
-			const res = await getPomodoroSuggestion(taskInput, achievements);
+			const res = await getPomodoroSuggestion(taskInput, currentCount, achievements);
 			if (res) {
 				setSuggestion(res);
 			}

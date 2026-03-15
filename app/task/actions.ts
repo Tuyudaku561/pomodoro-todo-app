@@ -8,7 +8,7 @@ import { Achievement } from "./types";
 /**
  * タスク名から最適なポモドーロ数をAIに相談するServer Action
  */
-export async function getPomodoroSuggestion(taskName: string, achievements: Achievement[]) {
+export async function getPomodoroSuggestion(taskName: string, count: number, achievements: Achievement[]) {
 	if (!taskName || taskName.trim().length < 2) {
 		return null;
 	}
@@ -27,7 +27,7 @@ export async function getPomodoroSuggestion(taskName: string, achievements: Achi
 			}),
 			prompt: `
 あなたはポモドーロ・テクニックの専門家です。
-ユーザーが新しいタスク「${taskName}」を追加しようとしています。
+ユーザーが新しいタスク「${taskName}」をポモドーロ数${count}で追加しようとしています。
 以下の過去の達成度データ（JSON）を元に、このユーザーにとって最適なポモドーロ数（1ポモドーロ=25分）を1以上10以下の整数で提案してください。
 
 過去のデータ:
