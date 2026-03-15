@@ -93,7 +93,10 @@ export default function TaskList({ tasks }: TaskListProps) {
 								<div className="button-group">
 									{task.isRunning ? (
 										// 実行中の表示
-										<button onClick={() => stopTask(task.id)}>強制終了</button>
+										<button onClick={() => {
+											stopTask(task.id);
+											router.push("/timer");
+										}}>強制終了</button>
 									) : (
 										// 停止中の表示
 										<>
