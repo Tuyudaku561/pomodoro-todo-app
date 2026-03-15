@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useMemo, useState, useEffect } from "react";
+import React, { createContext, useContext, useMemo, useState, useEffect, useCallback } from "react";
 import type { Task, Achievement } from "./types";
 
 export type NewTask = Omit<Task, "id" | "isRunning" | "completed">;
@@ -42,6 +42,9 @@ const TaskContext = createContext<TaskContextValue | undefined>(undefined);
 const TASKS_STORAGE_KEY = "pomodoro-tasks";
 const TIMER_STORAGE_KEY = "pomodoro-timer";
 
+/**
+ * タスク管理とタイマーの状態を提供するプロバイダーコンポーネント
+ */
 export function TaskProvider({ children }: { children: React.ReactNode }) {
 	const [tasks, setTasks] = useState<Task[]>([]);
 	
@@ -55,15 +58,16 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 	const [activeTaskId, setActiveTaskId] = useState<number | null>(null);
 	const [showEvaluation, setShowEvaluation] = useState(false);
 
-	// ローカルストレージからタスクを読み込む
+	// ローカルストレージからタスクとタイマーの状態を読み込む
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
 			const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
 			if (storedTasks) {
 				try {
-					setTasks(JSON.parse(storedTasks));
+					const parsedTasks = JSON.parse(storedTasks);
+					queueMicrotask(() => setTasks(parsedTasks));
 				} catch (error) {
-					console.error("Failed to parse tasks:", error);
+					console.error("Failed to parse tasks from localStorage:", error);
 				}
 			}
 
@@ -71,13 +75,15 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 			if (storedTimer) {
 				try {
 					const timerData = JSON.parse(storedTimer);
-					setMode(timerData.mode || "work");
-					setTimeLeft(timerData.timeLeft || WORK_TIME);
-					setIsTimerRunning(timerData.isTimerRunning || false);
-					setPomodoroCount(timerData.pomodoroCount || 0);
-					setTargetPomodoros(timerData.targetPomodoros || 4);
-					setTotalFocusSeconds(timerData.totalFocusSeconds || 0);
-					setActiveTaskId(timerData.activeTaskId || null);
+					queueMicrotask(() => {
+						if (timerData.mode) setMode(timerData.mode);
+						if (timerData.timeLeft !== undefined) setTimeLeft(timerData.timeLeft);
+						if (timerData.isTimerRunning !== undefined) setIsTimerRunning(timerData.isTimerRunning);
+						if (timerData.pomodoroCount !== undefined) setPomodoroCount(timerData.pomodoroCount);
+						if (timerData.targetPomodoros !== undefined) setTargetPomodoros(timerData.targetPomodoros);
+						if (timerData.totalFocusSeconds !== undefined) setTotalFocusSeconds(timerData.totalFocusSeconds);
+						if (timerData.activeTaskId !== undefined) setActiveTaskId(timerData.activeTaskId);
+					});
 				} catch (error) {
 					console.error("Failed to parse timer:", error);
 				}
@@ -85,13 +91,14 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 		}
 	}, []);
 
-	// データの保存
+	// タスクが変更されたらローカルストレージに保存
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
 			localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
 		}
 	}, [tasks]);
 
+	// タイマーの状態が変更されたらローカルストレージに保存
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
 			const timerData = {
@@ -112,26 +119,28 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 		if (!isTimerRunning) return;
 
 		if (timeLeft <= 0) {
-			if (mode === "work") {
-				const nextCount = pomodoroCount + 1;
-				setPomodoroCount(nextCount);
-
-				if (nextCount >= targetPomodoros) {
-					setIsTimerRunning(false);
-					setShowEvaluation(true);
-					// タスクの実行状態を解除
-					if (activeTaskId) {
-						setTasks(prev => prev.map(t => t.id === activeTaskId ? { ...t, isRunning: false } : t));
-					}
-					return;
+			queueMicrotask(() => {
+				if (mode === "work") {
+					setPomodoroCount(prev => {
+						const nextCount = prev + 1;
+						if (nextCount >= targetPomodoros) {
+							setIsTimerRunning(false);
+							setShowEvaluation(true);
+							// タスクの実行状態を解除
+							if (activeTaskId) {
+								setTasks(currentTasks => currentTasks.map(t => t.id === activeTaskId ? { ...t, isRunning: false } : t));
+							}
+						} else {
+							setMode("break");
+							setTimeLeft(BREAK_TIME);
+						}
+						return nextCount;
+					});
+				} else {
+					setMode("work");
+					setTimeLeft(WORK_TIME);
 				}
-
-				setMode("break");
-				setTimeLeft(BREAK_TIME);
-			} else {
-				setMode("work");
-				setTimeLeft(WORK_TIME);
-			}
+			});
 			return;
 		}
 
@@ -143,9 +152,12 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 		}, 1000);
 
 		return () => clearInterval(interval);
-	}, [isTimerRunning, timeLeft, mode, pomodoroCount, targetPomodoros, activeTaskId]);
+	}, [isTimerRunning, timeLeft, mode, targetPomodoros, activeTaskId]);
 
-	const addTask = (newTask: NewTask) => {
+	/**
+	 * 新しいタスクを生成して一覧に追加する
+	 */
+	const addTask = useCallback((newTask: NewTask) => {
 		const task: Task = {
 			...newTask,
 			id: Date.now(),
@@ -153,84 +165,123 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 			completed: false,
 		};
 		setTasks((prev) => [...prev, task]);
-	};
+	}, []);
 
-	const startTask = (taskId: number) => {
-		const task = tasks.find(t => t.id === taskId);
-		if (task) {
-			setTasks((prev) =>
-				prev.map((t) => ({
+	/**
+	 * 指定したIDのタスクを開始し、それ以外を停止する
+	 * タイマーも連動して開始する
+	 */
+	const startTask = useCallback((taskId: number) => {
+		setTasks((prev) => {
+			const task = prev.find(t => t.id === taskId);
+			if (task) {
+				setActiveTaskId(taskId);
+				setTargetPomodoros(task.pomodoroCount);
+				setIsTimerRunning(true);
+				return prev.map((t) => ({
 					...t,
 					isRunning: t.id === taskId,
-				}))
-			);
-			setActiveTaskId(taskId);
-			setTargetPomodoros(task.pomodoroCount);
-			setIsTimerRunning(true);
-			// 既に開始している場合はリセットしない仕様（継続）
-		}
-	};
+				}));
+			}
+			return prev;
+		});
+	}, []);
 
-	const stopTask = (taskId: number) => {
+	/**
+	 * 指定したIDのタスクの実行状態を解除し、タイマーを停止する
+	 */
+	const stopTask = useCallback((taskId: number) => {
 		setTasks((prev) =>
 			prev.map((task) =>
 				task.id === taskId ? { ...task, isRunning: false } : task
 			)
 		);
-		if (activeTaskId === taskId) {
-			setIsTimerRunning(false);
-		}
-	};
+		setActiveTaskId(prevActiveId => {
+			if (prevActiveId === taskId) {
+				setIsTimerRunning(false);
+			}
+			return prevActiveId;
+		});
+	}, []);
 
-	const resetTimer = () => {
-		if (mode === "work") {
-			setTimeLeft(WORK_TIME);
-		} else {
-			setTimeLeft(BREAK_TIME);
-		}
+	/**
+	 * タイマーを現在のモードの初期時間にリセットし、停止する
+	 */
+	const resetTimer = useCallback(() => {
+		setMode(currentMode => {
+			if (currentMode === "work") {
+				setTimeLeft(WORK_TIME);
+			} else {
+				setTimeLeft(BREAK_TIME);
+			}
+			return currentMode;
+		});
 		setIsTimerRunning(false);
-	};
+	}, []);
 
-	const handleRatingSelect = (rating: 1 | 2 | 3) => {
-		if (!activeTaskId) return;
+	/**
+	 * タスクの達成度を評価し、実績として保存する
+	 */
+	const handleRatingSelect = useCallback((rating: 1 | 2 | 3) => {
+		setActiveTaskId(currentActiveId => {
+			if (!currentActiveId) return null;
 
-		const task = tasks.find(t => t.id === activeTaskId);
-		if (!task) return;
+			setTasks(currentTasks => {
+				const task = currentTasks.find(t => t.id === currentActiveId);
+				if (task) {
+					setPomodoroCount(currentPomodoroCount => {
+						const achievement: Achievement = {
+							taskName: task.title,
+							plannedPomodoros: task.pomodoroCount,
+							actualPomodoros: currentPomodoroCount,
+							rating,
+						};
 
-		const achievement: Achievement = {
-			taskName: task.title,
-			plannedPomodoros: task.pomodoroCount,
-			actualPomodoros: pomodoroCount,
-			rating,
-		};
+						const storedAchievements = localStorage.getItem("achievements");
+						const achievements: Achievement[] = storedAchievements ? JSON.parse(storedAchievements) : [];
+						achievements.push(achievement);
+						localStorage.setItem("achievements", JSON.stringify(achievements));
+						
+						return 0; // 実績保存後にpomodoroCountをリセット
+					});
+				}
+				return currentTasks;
+			});
 
-		const storedAchievements = localStorage.getItem("achievements");
-		const achievements: Achievement[] = storedAchievements ? JSON.parse(storedAchievements) : [];
-		achievements.push(achievement);
-		localStorage.setItem("achievements", JSON.stringify(achievements));
+			setShowEvaluation(false);
+			return null; // activeTaskIdをリセット
+		});
+	}, []);
 
-		setShowEvaluation(false);
-		// 必要に応じてリセット
-		setPomodoroCount(0);
-		setActiveTaskId(null);
-	};
-
-	const editTask = (id: number, updates: Partial<NewTask>) => {
+	/**
+	 * 指定したIDのタスクを更新する
+	 */
+	const editTask = useCallback((id: number, updates: Partial<NewTask>) => {
 		setTasks((prev) =>
 			prev.map((task) =>
 				task.id === id ? { ...task, ...updates } : task
 			)
 		);
-	};
+	}, []);
 
-	const deleteTask = (id: number) => {
+	/**
+	 * 指定したIDのタスクを削除する
+	 * 実行中であればタイマーも停止する
+	 */
+	const deleteTask = useCallback((id: number) => {
 		setTasks((prev) => prev.filter((task) => task.id !== id));
-		if (activeTaskId === id) {
-			setIsTimerRunning(false);
-			setActiveTaskId(null);
-		}
-	};
+		setActiveTaskId(prevActiveId => {
+			if (prevActiveId === id) {
+				setIsTimerRunning(false);
+				return null;
+			}
+			return prevActiveId;
+		});
+	}, []);
 
+	/**
+	 * コンテキストに渡す値をメモ化
+	 */
 	const value = useMemo(
 		() => ({ 
 			tasks, addTask, startTask, stopTask, editTask, deleteTask,
@@ -239,12 +290,19 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 			totalFocusSeconds, setTotalFocusSeconds, activeTaskId, resetTimer,
 			handleRatingSelect, showEvaluation, setShowEvaluation
 		}),
-		[tasks, mode, timeLeft, isTimerRunning, pomodoroCount, targetPomodoros, totalFocusSeconds, activeTaskId, showEvaluation]
+		[
+			tasks, addTask, startTask, stopTask, editTask, deleteTask,
+			mode, timeLeft, isTimerRunning, pomodoroCount, targetPomodoros, 
+			totalFocusSeconds, activeTaskId, resetTimer, handleRatingSelect, showEvaluation
+		]
 	);
 
 	return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;
 }
 
+/**
+ * 各コンポーネントからTaskContext利用するためのカスタムフック
+ */
 export function useTasks() {
 	const ctx = useContext(TaskContext);
 	if (!ctx) {
