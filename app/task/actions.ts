@@ -14,8 +14,13 @@ export async function getPomodoroSuggestion(taskName: string) {
 	}
 
 	try {
+		// APIキーの存在確認
+		if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+			throw new Error("GOOGLE_GENERATIVE_AI_API_KEY is not set");
+		}
+
 		const { object } = await generateObject({
-			model: google("gemini-2.0-flash"),
+			model: google("gemini-2.0-flash-lite"),
 			schema: z.object({
 				suggestedPomodoros: z.number().min(1).max(10),
 				reason: z.string().describe("その数を選んだ理由（過去のデータとの比較など）"),
