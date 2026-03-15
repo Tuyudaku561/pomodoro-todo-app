@@ -5,8 +5,8 @@ import type { Task, Achievement } from "./types";
 
 export type NewTask = Omit<Task, "id" | "isRunning" | "completed">;
 
-const WORK_TIME = 10;
-const BREAK_TIME = 10;
+const WORK_TIME = 25 * 60;
+const BREAK_TIME = 5 * 60;
 
 type TimerMode = "work" | "break";
 

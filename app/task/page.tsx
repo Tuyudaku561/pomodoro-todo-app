@@ -10,7 +10,7 @@ import { useTasks } from "./TaskContext";
  */
 export default function TaskPage() {
 	const { tasks, achievements, clearAchievements } = useTasks();
-	const DEBUG = true; // デバッグ用: trueでachievementsを表示、falseで非表示
+	const DEBUG = false; // デバッグ用: trueでachievementsを表示、falseで非表示
 
 	return (
 		<div className="task-page">
