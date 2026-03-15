@@ -21,20 +21,35 @@ export default function AiGene({ taskInput, onSuggest }: AiGeneProps) {
 	// タスク入力が変更されたらAIに相談する
 	// ※頻繁なリクエストを防ぐためにデバウンス処理を入れる
 	useEffect(() => {
-		const timer = setTimeout(async () => {
-			if (taskInput.trim().length < 2) {
-				setSuggestion(null);
-				return;
-			}
-			setLoading(true);
-			const res = await getPomodoroSuggestion(taskInput);
-			if (res) {
-				setSuggestion(res);
-			}
+		let ignore = false;
+
+		// 入力値が短すぎる場合は即座にクリアしてタイマーを待たない
+		if (taskInput.trim().length < 2) {
+			setSuggestion(null);
 			setLoading(false);
+			return;
+		}
+
+		const timer = setTimeout(async () => {
+			setLoading(true);
+			try {
+				const res = await getPomodoroSuggestion(taskInput);
+				if (!ignore && res) {
+					setSuggestion(res);
+				}
+			} catch (error) {
+				console.error("AI suggestion error:", error);
+			} finally {
+				if (!ignore) {
+					setLoading(false);
+				}
+			}
 		}, 1000); // 1秒のデバウンス
 
-		return () => clearTimeout(timer);
+		return () => {
+			ignore = true;
+			clearTimeout(timer);
+		};
 	}, [taskInput]);
 
 	if (loading) {
@@ -51,8 +66,8 @@ export default function AiGene({ taskInput, onSuggest }: AiGeneProps) {
 				✨ AIによる提案: <strong>{suggestion.suggestedPomodoros}ポモドーロ</strong>
 			</div>
 			<p className="suggestion-reason">{suggestion.reason}</p>
-			<button 
-				type="button" 
+			<button
+				type="button"
 				className="apply-button"
 				onClick={() => onSuggest(suggestion.suggestedPomodoros)}
 			>
