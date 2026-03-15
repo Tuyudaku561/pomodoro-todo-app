@@ -5,8 +5,8 @@ import type { Task, Achievement } from "./types";
 
 export type NewTask = Omit<Task, "id" | "isRunning" | "completed">;
 
-const WORK_TIME = 25 * 60;
-const BREAK_TIME = 5 * 60;
+const WORK_TIME = 10;
+const BREAK_TIME = 10;
 
 type TimerMode = "work" | "break";
 
@@ -47,7 +47,7 @@ const TIMER_STORAGE_KEY = "pomodoro-timer";
  */
 export function TaskProvider({ children }: { children: React.ReactNode }) {
 	const [tasks, setTasks] = useState<Task[]>([]);
-	
+
 	// タイマーの状態
 	const [mode, setMode] = useState<TimerMode>("work");
 	const [timeLeft, setTimeLeft] = useState(WORK_TIME);
@@ -242,11 +242,11 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 						const achievements: Achievement[] = storedAchievements ? JSON.parse(storedAchievements) : [];
 						achievements.push(achievement);
 						localStorage.setItem("achievements", JSON.stringify(achievements));
-						
+
 						return 0; // 実績保存後にpomodoroCountをリセット
 					});
 				}
-				return currentTasks;
+				return currentTasks.filter(t => t.id !== currentActiveId); // タスクを完了扱いで一覧から削除
 			});
 
 			setShowEvaluation(false);
@@ -285,7 +285,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 	 * コンテキストに渡す値をメモ化
 	 */
 	const value = useMemo(
-		() => ({ 
+		() => ({
 			tasks, addTask, startTask, stopTask, editTask, deleteTask,
 			mode, setMode, timeLeft, setTimeLeft, isTimerRunning, setIsTimerRunning,
 			pomodoroCount, setPomodoroCount, targetPomodoros, setTargetPomodoros,
@@ -294,7 +294,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 		}),
 		[
 			tasks, addTask, startTask, stopTask, editTask, deleteTask,
-			mode, timeLeft, isTimerRunning, pomodoroCount, targetPomodoros, 
+			mode, timeLeft, isTimerRunning, pomodoroCount, targetPomodoros,
 			totalFocusSeconds, activeTaskId, resetTimer, handleRatingSelect, showEvaluation
 		]
 	);
