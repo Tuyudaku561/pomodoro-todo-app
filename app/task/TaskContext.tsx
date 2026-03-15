@@ -211,13 +211,10 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 				task.id === taskId ? { ...task, isRunning: false } : task
 			)
 		);
-		setActiveTaskId(prevActiveId => {
-			if (prevActiveId === taskId) {
-				setIsTimerRunning(false);
-			}
-			return prevActiveId;
-		});
-	}, []);
+		if (activeTaskId === taskId) {
+			setIsTimerRunning(false);
+		}
+	}, [activeTaskId]);
 
 	/**
 	 * タイマーを現在のモードの初期時間にリセットし、停止する
@@ -238,35 +235,34 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 	 * タスクの達成度を評価し、実績として保存する
 	 */
 	const handleRatingSelect = useCallback((rating: 1 | 2 | 3) => {
-		setActiveTaskId(currentActiveId => {
-			if (!currentActiveId) return null;
+		if (!activeTaskId) return;
 
-			setTasks(currentTasks => {
-				const task = currentTasks.find(t => t.id === currentActiveId);
-				if (task) {
-					const achievement: Achievement = {
-						taskName: task.title,
-						plannedPomodoros: task.pomodoroCount,
-						rating,
-					};
+		const task = tasks.find(t => t.id === activeTaskId);
+		if (task) {
+			const achievement: Achievement = {
+				taskName: task.title,
+				plannedPomodoros: task.pomodoroCount,
+				rating,
+			};
 
-					const storedAchievements = localStorage.getItem("achievements");
-					const achievements: Achievement[] = storedAchievements ? JSON.parse(storedAchievements) : [];
-					achievements.push(achievement);
-					localStorage.setItem("achievements", JSON.stringify(achievements));
-					setAchievements(achievements);
-					if (DEBUG) console.log("Updated achievements:", achievements);
+			// 実績の保存（副作用を updater の外で実行）
+			if (typeof window !== 'undefined') {
+				const storedAchievements = localStorage.getItem("achievements");
+				const currentAchievements: Achievement[] = storedAchievements ? JSON.parse(storedAchievements) : [];
+				const newAchievements = [...currentAchievements, achievement];
+				localStorage.setItem("achievements", JSON.stringify(newAchievements));
+				setAchievements(newAchievements);
+				if (DEBUG) console.log("Updated achievements:", newAchievements);
+			}
 
-					setPomodoroCount(0); // 実績保存後にpomodoroCountをリセット
-				}
-				return currentTasks.filter(t => t.id !== currentActiveId); // タスクを完了扱いで一覧から削除
-			});
+			setTasks(prev => prev.filter(t => t.id !== activeTaskId));
+			setPomodoroCount(0);
+		}
 
-			setShowEvaluation(false);
-			resetTimer();
-			return null; // activeTaskIdをリセット
-		});
-	}, [resetTimer]);
+		setShowEvaluation(false);
+		resetTimer();
+		setActiveTaskId(null);
+	}, [activeTaskId, tasks, resetTimer, DEBUG]);
 
 	/**
 	 * 指定したIDのタスクを更新する
@@ -285,14 +281,11 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 	 */
 	const deleteTask = useCallback((id: number) => {
 		setTasks((prev) => prev.filter((task) => task.id !== id));
-		setActiveTaskId(prevActiveId => {
-			if (prevActiveId === id) {
-				setIsTimerRunning(false);
-				return null;
-			}
-			return prevActiveId;
-		});
-	}, []);
+		if (activeTaskId === id) {
+			setIsTimerRunning(false);
+			setActiveTaskId(null);
+		}
+	}, [activeTaskId]);
 
 	/**
 	 * achievementsを初期化する
