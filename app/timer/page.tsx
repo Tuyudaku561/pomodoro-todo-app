@@ -11,6 +11,8 @@ const BREAK_TIME = 10;
 
 export default function TimerPage() {
   const router = useRouter();
+  const {tasks, activeTaskId} = useTasks();
+  const activeTask = tasks.find((t) => t.id=== activeTaskId);
 	const {
 		mode, setMode,
 		timeLeft, setTimeLeft,
@@ -20,7 +22,7 @@ export default function TimerPage() {
 		totalFocusSeconds,
 		resetTimer,
 		handleRatingSelect,
-		showEvaluation
+		showEvaluation,
 	} = useTasks();
 
   // 関数: 秒を mm:ss に変換する
@@ -44,7 +46,7 @@ export default function TimerPage() {
       <div className="mx-auto max-w-2xl rounded-2xl bg-white p-8 shadow-md">
         {/* タイトル */}
         <h1 className="mb-8 text-center text-3xl font-bold text-gray-800">
-          Pomodoro Timer
+          {activeTask?.title}
         </h1>
 
         {/* Work / Break 切り替え */}

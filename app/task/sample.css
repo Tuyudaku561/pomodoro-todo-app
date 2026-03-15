@@ -73,8 +73,37 @@
 }
 
 /* AI助言欄のスタイル */
+.ai-gene-container {
+  margin-top: 1rem;
+}
+
+.ai-consult-button {
+  padding: 0.6rem 1.2rem;
+  background-color: #f8f9fa;
+  color: #4a90e2;
+  border: 1px solid #4a90e2;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: inline-block;
+}
+
+.ai-consult-button:hover:not(:disabled) {
+  background-color: #eef6ff;
+  transform: scale(1.02);
+}
+
+.ai-consult-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  border-color: #ccc;
+  color: #999;
+}
+
 .ai-suggestion-box {
-  margin-top: 1.5rem;
+  margin-top: 1rem;
   padding: 1.25rem;
   background: #f0faff;
   border: 1px dashed #4a90e2;

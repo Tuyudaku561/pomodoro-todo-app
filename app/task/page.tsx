@@ -13,7 +13,6 @@ export default function TaskPage() {
 
 	return (
 		<div className="task-page">
-			<h1>ポモドーロ・タスク管理</h1>
 			<InputSpace />
 			<TaskList tasks={tasks} />
 		</div>
