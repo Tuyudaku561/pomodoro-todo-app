@@ -5,20 +5,25 @@ import { useSearchParams } from "next/navigation";
 import TimerDisplay from "../../components/TimerDisplay";
 import ModeSwitcher from "../../components/ModeSwitcher";
 import TimerControls from "../../components/TimerControls";
-import type { Task } from "../task/types";
+import type { Task, Achievement } from "../task/types";
 
 export default function TimerPage() {
+  const WORK_TIME: number = 5 // 25 * 60
+  const BREAK_TIME: number = 5 // 5 * 60
+
 	const searchParams = useSearchParams();
 	const taskId = searchParams.get('taskId');
 
 	const TIMER_STORAGE_KEY = "pomodoro-timer";
 
 	const [mode, setMode] = useState<"work" | "break">("work");// タイマーのモード（work か break）
-	const [timeLeft, setTimeLeft] = useState(25 * 60);// 残り時間（秒）
+	const [timeLeft, setTimeLeft] = useState(WORK_TIME);// 残り時間（秒）デフォルト：25 * 60
 	const [isRunning, setIsRunning] = useState(false);// タイマーが動いているかどうか
 	const [pomodoroCount, setPomodoroCount] = useState(0);// 完了したポモドーロ回数
 	const [targetPomodoros, setTargetPomodoros] = useState(4);// 目標ポモドーロ数
 	const [totalFocusSeconds, setTotalFocusSeconds] = useState(0);// 累計集中時間（秒）
+	const [showEvaluation, setShowEvaluation] = useState(false);// 評価欄を表示するか
+	const [selectedRating, setSelectedRating] = useState<1 | 2 | 3 | null>(null);// 選択された評価
 
 	// ローカルストレージからタイマーの状態を読み込む
 	useEffect(() => {
@@ -28,7 +33,7 @@ export default function TimerPage() {
 				try {
 					const timerData = JSON.parse(storedTimer);
 					setMode(timerData.mode || "work");
-					setTimeLeft(timerData.timeLeft || 25 * 60);
+					setTimeLeft(timerData.timeLeft || WORK_TIME);
 					setIsRunning(timerData.isRunning || false);
 					setPomodoroCount(timerData.pomodoroCount || 0);
 					setTargetPomodoros(timerData.targetPomodoros || 4);
@@ -54,6 +59,56 @@ export default function TimerPage() {
 			localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(timerData));
 		}
 	}, [mode, timeLeft, isRunning, pomodoroCount, targetPomodoros, totalFocusSeconds]);
+
+	// pomodoroCountがtargetPomodorosに達したら、タスクのisRunningをfalseにし、評価を表示
+	useEffect(() => {
+		if (pomodoroCount >= targetPomodoros && taskId && typeof window !== 'undefined') {
+			const storedTasks = localStorage.getItem("pomodoro-tasks");
+			if (storedTasks) {
+				try {
+					const tasks: Task[] = JSON.parse(storedTasks);
+					const updatedTasks = tasks.map(task =>
+						task.id === Number(taskId) ? { ...task, isRunning: false } : task
+					);
+					localStorage.setItem("pomodoro-tasks", JSON.stringify(updatedTasks));
+					setShowEvaluation(true);
+				} catch (error) {
+					console.error("Failed to update task:", error);
+				}
+			}
+		}
+	}, [pomodoroCount, targetPomodoros, taskId]);
+
+	// 評価を選択する関数
+	const handleRatingSelect = (rating: 1 | 2 | 3) => {
+		if (!taskId || typeof window === 'undefined') return;
+
+		const storedTasks = localStorage.getItem("pomodoro-tasks");
+		if (!storedTasks) return;
+
+		try {
+			const tasks: Task[] = JSON.parse(storedTasks);
+			const task = tasks.find(t => t.id === Number(taskId));
+			if (!task) return;
+
+			const achievement: Achievement = {
+				taskName: task.title,
+				plannedPomodoros: task.pomodoroCount,
+				actualPomodoros: pomodoroCount,
+				rating,
+			};
+
+			const storedAchievements = localStorage.getItem("achievements");
+			const achievements: Achievement[] = storedAchievements ? JSON.parse(storedAchievements) : [];
+			achievements.push(achievement);
+			localStorage.setItem("achievements", JSON.stringify(achievements));
+
+			setShowEvaluation(false);
+			setSelectedRating(null);
+		} catch (error) {
+			console.error("Failed to save achievement:", error);
+		}
+	};
 
 	// taskIdがある場合、タスクを取得して設定
 	useEffect(() => {
@@ -109,11 +164,11 @@ export default function TimerPage() {
 
         // Break に切り替え
         setMode("break");
-        setTimeLeft(5 * 60);
+        setTimeLeft(BREAK_TIME);
       } else {
         // Work に戻す
         setMode("work");
-        setTimeLeft(25 * 60);
+        setTimeLeft(WORK_TIME);
       }
       return;
     }
@@ -143,12 +198,12 @@ export default function TimerPage() {
         <ModeSwitcher
           onWorkClick={() => {
             setMode("work");
-            setTimeLeft(25 * 60);
+            setTimeLeft(WORK_TIME);
             setIsRunning(false);
           }}
           onBreakClick={() => {
             setMode("break");
-            setTimeLeft(5 * 60);
+            setTimeLeft(BREAK_TIME);
             setIsRunning(false);
           }}
         />
@@ -194,14 +249,41 @@ export default function TimerPage() {
           onReset={() => {
             // 今のモードに応じた時間に戻す
             if (mode === "work") {
-              setTimeLeft(25 * 60);
+              setTimeLeft(WORK_TIME);
             } else {
-              setTimeLeft(5 * 60);
+              setTimeLeft(BREAK_TIME);
             }
 
             setIsRunning(false);
           }}
         />
+        
+        {/* 達成度評価 */}
+        {showEvaluation && (
+          <div className="mt-8 rounded-lg bg-blue-50 p-6 text-center">
+            <h2 className="mb-4 text-xl font-semibold text-gray-800">タスクの達成度を評価してください</h2>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => handleRatingSelect(1)}
+                className="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600 transition-colors"
+              >
+                1: 期待を下回る
+              </button>
+              <button
+                onClick={() => handleRatingSelect(2)}
+                className="rounded-lg bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600 transition-colors"
+              >
+                2: 期待通り
+              </button>
+              <button
+                onClick={() => handleRatingSelect(3)}
+                className="rounded-lg bg-green-500 px-4 py-2 text-white hover:bg-green-600 transition-colors"
+              >
+                3: 期待を上回る
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
