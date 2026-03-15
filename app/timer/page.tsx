@@ -10,6 +10,7 @@ export default function TimerPage() {
   const [timeLeft, setTimeLeft] = useState(10);// 残り時間（秒）
   const [isRunning, setIsRunning] = useState(false);// タイマーが動いているかどうか
   const [pomodoroCount, setPomodoroCount] = useState(0);// 完了したポモドーロ回数
+  const [targetPomodoros, setTargetPomodoros] = useState(4);// 目標ポモドーロ数
 	const [totalFocusSeconds, setTotalFocusSeconds] = useState(0);// 累計集中時間（秒）
 
   // 関数: 秒を mm:ss に変換する
@@ -36,8 +37,15 @@ export default function TimerPage() {
     // 0秒以下になったらモード切り替え
     if (timeLeft <= 0) {
       if (mode === "work") {
-        // Work 完了時だけポモドーロ回数を増やす
-        setPomodoroCount((prev) => prev + 1);
+        const nextCount = pomodoroCount + 1;
+        setPomodoroCount(nextCount);
+
+        if (nextCount >= targetPomodoros) {
+          // 目標到達で一旦停止
+          setIsRunning(false);
+          return;
+        }
+
         // Break に切り替え
         setMode("break");
         setTimeLeft(5 * 60);
@@ -60,7 +68,7 @@ export default function TimerPage() {
 
     // 前の interval を消す
     return () => clearInterval(interval);
-  }, [isRunning, timeLeft, mode]);
+  }, [isRunning, timeLeft, mode, pomodoroCount, targetPomodoros]);
 
   return (
     <main className="min-h-screen bg-gray-100 px-6 py-10">
@@ -84,20 +92,43 @@ export default function TimerPage() {
           }}
         />
 
+        {/* 目標ポモドーロ数設定 */}
+        <div className="mb-4 flex justify-center gap-2 text-sm">
+          <label className="flex items-center gap-2 text-gray-700">
+            Goal Pomodoros:
+            <input
+              type="number"
+              min={1}
+              value={targetPomodoros}
+              onChange={(e) => {
+                const parsed = Math.max(1, Number(e.target.value) || 1);
+                setTargetPomodoros(parsed);
+              }}
+              className="w-16 rounded border px-2 py-1 text-center"
+            />
+          </label>
+        </div>
+
         {/* 時計表示 */}
         <TimerDisplay
           mode={mode}
           timeLeft={timeLeft}
           isRunning={isRunning}
           pomodoroCount={pomodoroCount}
-					totalFocusSeconds={totalFocusSeconds}
+          targetPomodoros={targetPomodoros}
+          totalFocusSeconds={totalFocusSeconds}
           formatTime={formatTime}
-					formatFocusMinutes={formatFocusMinutes}
+          formatFocusMinutes={formatFocusMinutes}
         />
 
         {/* Start / Pause / Reset */}
         <TimerControls
-          onStart={() => setIsRunning(true)}
+          onStart={() => {
+            if (pomodoroCount >= targetPomodoros) {
+              return;
+            }
+            setIsRunning(true);
+          }}
           onPause={() => setIsRunning(false)}
           onReset={() => {
             // 今のモードに応じた時間に戻す

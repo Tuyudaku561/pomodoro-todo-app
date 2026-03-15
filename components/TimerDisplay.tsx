@@ -3,6 +3,7 @@ type TimerDisplayProps = {
   timeLeft: number;
   isRunning: boolean;
   pomodoroCount: number;
+  targetPomodoros: number;
   totalFocusSeconds: number;
   formatTime: (seconds: number) => string;
   formatFocusMinutes: (seconds: number) => number;
@@ -13,6 +14,7 @@ export default function TimerDisplay({
   timeLeft,
   isRunning,
   pomodoroCount,
+  targetPomodoros,
   totalFocusSeconds,
   formatTime,
   formatFocusMinutes,
@@ -40,8 +42,14 @@ export default function TimerDisplay({
       </p>
 
       <p className="mt-4 text-center text-gray-700">
-        Pomodoros completed: {pomodoroCount}
+        Pomodoros completed: {pomodoroCount} / {targetPomodoros}
       </p>
+
+      {pomodoroCount >= targetPomodoros && (
+        <p className="mt-2 text-center text-green-600 font-semibold">
+          Goal reached! Timer is stopped.
+        </p>
+      )}
 
       <p className="mt-2 text-center text-gray-700">
         Total focus time today: {formatFocusMinutes(totalFocusSeconds)} min

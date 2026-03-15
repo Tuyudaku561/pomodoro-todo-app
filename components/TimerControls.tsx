@@ -19,7 +19,7 @@ export default function TimerControls({
       {/* Start ボタン */}
       <button
         onClick={onStart}
-        className="rounded-lg bg-blue-500 px-6 py-3 font-semibold text-white"
+        className="rounded-lg bg-blue-500 px-6 py-3 font-semibold text-white shadow-md transition-all duration-150 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0.5 active:shadow-sm"
       >
         Start
       </button>
@@ -27,7 +27,7 @@ export default function TimerControls({
       {/* Pause ボタン */}
       <button
         onClick={onPause}
-        className="rounded-lg bg-yellow-500 px-6 py-3 font-semibold text-white"
+        className="rounded-lg bg-yellow-500 px-6 py-3 font-semibold text-white shadow-md transition-all duration-150 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0.5 active:shadow-sm"
       >
         Pause
       </button>
@@ -35,7 +35,7 @@ export default function TimerControls({
       {/* Reset ボタン */}
       <button
         onClick={onReset}
-        className="rounded-lg bg-gray-500 px-6 py-3 font-semibold text-white"
+        className="rounded-lg bg-gray-500 px-6 py-3 font-semibold text-white shadow-md transition-all duration-150 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0.5 active:shadow-sm"
       >
         Reset
       </button>
