@@ -1,17 +1,78 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import TimerDisplay from "../../components/TimerDisplay";
 import ModeSwitcher from "../../components/ModeSwitcher";
 import TimerControls from "../../components/TimerControls";
+import type { Task } from "../task/types";
 
 export default function TimerPage() {
-  const [mode, setMode] = useState<"work" | "break">("work");// タイマーのモード（work か break）
-  const [timeLeft, setTimeLeft] = useState(10);// 残り時間（秒）
-  const [isRunning, setIsRunning] = useState(false);// タイマーが動いているかどうか
-  const [pomodoroCount, setPomodoroCount] = useState(0);// 完了したポモドーロ回数
-  const [targetPomodoros, setTargetPomodoros] = useState(4);// 目標ポモドーロ数
+	const searchParams = useSearchParams();
+	const taskId = searchParams.get('taskId');
+
+	const TIMER_STORAGE_KEY = "pomodoro-timer";
+
+	const [mode, setMode] = useState<"work" | "break">("work");// タイマーのモード（work か break）
+	const [timeLeft, setTimeLeft] = useState(25 * 60);// 残り時間（秒）
+	const [isRunning, setIsRunning] = useState(false);// タイマーが動いているかどうか
+	const [pomodoroCount, setPomodoroCount] = useState(0);// 完了したポモドーロ回数
+	const [targetPomodoros, setTargetPomodoros] = useState(4);// 目標ポモドーロ数
 	const [totalFocusSeconds, setTotalFocusSeconds] = useState(0);// 累計集中時間（秒）
+
+	// ローカルストレージからタイマーの状態を読み込む
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			const storedTimer = localStorage.getItem(TIMER_STORAGE_KEY);
+			if (storedTimer) {
+				try {
+					const timerData = JSON.parse(storedTimer);
+					setMode(timerData.mode || "work");
+					setTimeLeft(timerData.timeLeft || 25 * 60);
+					setIsRunning(timerData.isRunning || false);
+					setPomodoroCount(timerData.pomodoroCount || 0);
+					setTargetPomodoros(timerData.targetPomodoros || 4);
+					setTotalFocusSeconds(timerData.totalFocusSeconds || 0);
+				} catch (error) {
+					console.error("Failed to parse timer from localStorage:", error);
+				}
+			}
+		}
+	}, []);
+
+	// タイマーの状態が変更されたらローカルストレージに保存
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			const timerData = {
+				mode,
+				timeLeft,
+				isRunning,
+				pomodoroCount,
+				targetPomodoros,
+				totalFocusSeconds,
+			};
+			localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(timerData));
+		}
+	}, [mode, timeLeft, isRunning, pomodoroCount, targetPomodoros, totalFocusSeconds]);
+
+	// taskIdがある場合、タスクを取得して設定
+	useEffect(() => {
+		if (taskId && typeof window !== 'undefined') {
+			const storedTasks = localStorage.getItem("pomodoro-tasks");
+			if (storedTasks) {
+				try {
+					const tasks: Task[] = JSON.parse(storedTasks);
+					const task = tasks.find(t => t.id === Number(taskId));
+					if (task) {
+						setTargetPomodoros(task.pomodoroCount);
+						setIsRunning(true);
+					}
+				} catch (error) {
+					console.error("Failed to parse tasks:", error);
+				}
+			}
+		}
+	}, [taskId]);
 
   // 関数: 秒を mm:ss に変換する
   const formatTime = (seconds: number) => {

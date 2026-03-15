@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Task } from "./types";
 import { useTasks } from "./TaskContext";
 
@@ -16,6 +17,7 @@ interface TaskListProps {
  */
 export default function TaskList({ tasks }: TaskListProps) {
 	const { startTask, editTask, deleteTask, stopTask } = useTasks();
+	const router = useRouter();
 	const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
 	const [editTitle, setEditTitle] = useState("");
 	const [editPomodoroCount, setEditPomodoroCount] = useState(1);
@@ -24,7 +26,7 @@ export default function TaskList({ tasks }: TaskListProps) {
 
 	const handleStart = (taskId: number) => {
 		startTask(taskId);
-		//router.push(`/timer?taskId=${taskId}`);
+		router.push(`/timer?taskId=${taskId}`);
 	};
 
 	const handleEdit = (task: Task) => {

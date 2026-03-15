@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useContext, useMemo, useState, useEffect } from "react";
 import type { Task } from "./types";
 
 export type NewTask = Omit<Task, "id" | "isRunning">;
@@ -16,11 +16,34 @@ type TaskContextValue = {
 
 const TaskContext = createContext<TaskContextValue | undefined>(undefined);
 
+const TASKS_STORAGE_KEY = "pomodoro-tasks";
+
 /**
  * タスク管理の状態を提供するプロバイダーコンポーネント
  */
 export function TaskProvider({ children }: { children: React.ReactNode }) {
 	const [tasks, setTasks] = useState<Task[]>([]);
+
+	// ローカルストレージからタスクを読み込む
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
+			if (storedTasks) {
+				try {
+					setTasks(JSON.parse(storedTasks));
+				} catch (error) {
+					console.error("Failed to parse tasks from localStorage:", error);
+				}
+			}
+		}
+	}, []);
+
+	// タスクが変更されたらローカルストレージに保存
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
+		}
+	}, [tasks]);
 
 	/**
 	 * 新しいタスクを生成して一覧に追加する
