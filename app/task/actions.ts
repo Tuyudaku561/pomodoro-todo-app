@@ -20,15 +20,15 @@ export async function getPomodoroSuggestion(taskName: string) {
 		}
 
 		const { object } = await generateObject({
-			model: google("gemini-2.0-flash-lite"),
+			model: google("gemini-2.5-flash-lite"),
 			schema: z.object({
 				suggestedPomodoros: z.number().min(1).max(10),
-				reason: z.string().describe("その数を選んだ理由（過去のデータとの比較など）"),
+				reason: z.string().describe("その数を選んだ理由（過去のデータとの比較など）100字以内"),
 			}),
 			prompt: `
 あなたはポモドーロ・テクニックの専門家です。
 ユーザーが新しいタスク「${taskName}」を追加しようとしています。
-以下の過去の達成度データ（JSON）を元に、このユーザーにとって最適なポモドーロ数（1ポモドーロ=25分）を提案してください。
+以下の過去の達成度データ（JSON）を元に、このユーザーにとって最適なポモドーロ数（1ポモドーロ=25分）を1以上10以下の整数で提案してください。
 
 過去のデータ:
 ${JSON.stringify(SAMPLE_ACHIEVEMENTS, null, 2)}
@@ -39,7 +39,7 @@ ${JSON.stringify(SAMPLE_ACHIEVEMENTS, null, 2)}
 3: 期待を上回った (計画より早く終わった、または非常に集中できた)
 
 ユーザーの傾向を分析し、「${taskName}」に似た過去のタスクや、全体的な見積もりの甘さ・厳しさを考慮して提案してください。
-日本語で回答してください。
+reasonは必ず100文字以内の日本語で回答してください。
 `,
 		});
 
